@@ -13,7 +13,6 @@ const winningNumbers = (game) => {
     const winningRegex = /^Card *\d*: ([\d* ]*) \|/;
     const match = game.match(winningRegex);
     if (match) {
-        // console.log(match[1].split(" "));
         return numberArray(match[1].split(" "));
     }
 };
@@ -21,13 +20,11 @@ const gameNumbers = (game) => {
     const gameRegex = /\|[ ]*([\d* ]*)/;
     const match = game.match(gameRegex);
     if (match) {
-        // console.log(match[1].split(" "));
         return numberArray(match[1].split(" "));
     }
 };
 const readInputLines = () => {
     const lines = (0, utils_1.inputLinesArray)("input.txt");
-    // console.log('lines', lines)
     let sum = 0;
     lines.forEach((line, lineIndex) => {
         const winNums = winningNumbers(line);

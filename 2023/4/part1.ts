@@ -14,7 +14,6 @@ const winningNumbers = (game: string) => {
   const match = game.match(winningRegex);
 
   if (match) {
-    // console.log(match[1].split(" "));
     return numberArray(match[1].split(" "));
   }
 };
@@ -24,14 +23,12 @@ const gameNumbers = (game: string) => {
   const match = game.match(gameRegex);
 
   if (match) {
-    // console.log(match[1].split(" "));
     return numberArray(match[1].split(" "));
   }
 };
 
 const readInputLines = () => {
   const lines = inputLinesArray("input.txt");
-  // console.log('lines', lines)
 
   let sum = 0
   lines.forEach((line: string, lineIndex: number) => {
