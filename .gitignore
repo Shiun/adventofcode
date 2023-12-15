@@ -1,4 +1,4 @@
 node_modules
 test_input.txt
-test_input2.txt
+test_input*.txt
 input.txt

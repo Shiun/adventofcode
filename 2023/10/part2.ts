@@ -2,13 +2,15 @@ import { inputLinesArray } from "../utils/utils";
 
 type Direction = "N" | "S" | "E" | "W" | undefined;
 
+type PathMark = "." | "*";
+
 type Tile = {
   dir: Direction[];
   start: boolean;
-  ground: boolean;
   row: number;
   col: number;
-  isPath: boolean;
+  mark: PathMark;
+  pipe: string;
 };
 
 const readInput = () => {
@@ -33,41 +35,84 @@ const parseMapValue = (value: string, row: number, col: number) => {
   let t: Tile | undefined = undefined;
   switch (value) {
     case "|":
-      t = { dir: ["N", "S"], start: false, ground: false, row, col, isPath: false };
-      break;
-    case "-":
-      t = { dir: ["E", "W"], start: false, ground: false, row, col, isPath: false };
-      break;
-    case "L":
-      t = { dir: ["N", "E"], start: false, ground: false, row, col, isPath: false };
-      break;
-    case "J":
-      t = { dir: ["N", "W"], start: false, ground: false, row, col, isPath: false };
-      break;
-    case "7":
-      t = { dir: ["W", "S"], start: false, ground: false, row, col, isPath: false };
-      break;
-    case "F":
-      t = { dir: ["E", "S"], start: false, ground: false, row, col, isPath: false };
-      break;
-    case ".":
       t = {
-        dir: [],
+        dir: ["N", "S"],
         start: false,
-        ground: true,
         row,
         col,
-        isPath: false
+        mark: ".",
+        pipe: value,
+      };
+      break;
+    case "-":
+      t = {
+        dir: ["E", "W"],
+        start: false,
+        row,
+        col,
+        mark: ".",
+        pipe: value,
+      };
+      break;
+    case "L":
+      t = {
+        dir: ["N", "E"],
+        start: false,
+        row,
+        col,
+        mark: ".",
+        pipe: value,
+      };
+      break;
+    case "J":
+      t = {
+        dir: ["N", "W"],
+        start: false,
+        row,
+        col,
+        mark: ".",
+        pipe: value,
+      };
+      break;
+    case "7":
+      t = {
+        dir: ["W", "S"],
+        start: false,
+        row,
+        col,
+        mark: ".",
+        pipe: value,
+      };
+      break;
+    case "F":
+      t = {
+        dir: ["E", "S"],
+        start: false,
+        row,
+        col,
+        mark: ".",
+        pipe: value,
       };
       break;
     case "S":
       t = {
         dir: [],
         start: true,
-        ground: false,
         row,
         col,
-        isPath: true
+        mark: "*",
+        pipe: value,
+      };
+      break;
+    case ".":
+    default:
+      t = {
+        dir: [],
+        start: false,
+        row,
+        col,
+        mark: ".",
+        pipe: value,
       };
       break;
   }
@@ -170,11 +215,11 @@ const getConnectedTile = (
 const walkMaze = (start: Tile, map: Array<Array<Tile>>) => {
   let currTile = undefined;
   let dir = start.dir[0];
-  let steps = 0
+  let steps = 0;
   while (currTile != start) {
-    steps++
+    steps++;
     currTile = getConnectedTile(currTile ? currTile : start, dir, map);
-    currTile!.isPath = true
+    currTile!.mark = "*";
     // console.log('From dir', dir)
     // console.log("currTile", currTile);
     switch (dir) {
@@ -194,7 +239,45 @@ const walkMaze = (start: Tile, map: Array<Array<Tile>>) => {
     // console.log('Next dir', dir)
   }
 
-  return steps
+  return steps;
+};
+
+const findEnclosedGround = (map: Array<Array<Tile>>) => {
+  let count = 0;
+
+  let seenNorth = false;
+  let seenSouth = false;
+  let isInside = false;
+  map.forEach((row, i) => {
+    row.forEach((col, j) => {
+      let tile = map[i][j];
+      if (tile.mark === "*") {
+        if (tile.dir.includes("N")) {
+          seenNorth = !seenNorth;
+        }
+        if (tile.dir.includes("S")) {
+          seenSouth = !seenSouth;
+        }
+      }
+
+      if (tile.mark === '.') {
+        if (seenNorth && seenSouth) {
+          seenNorth = false;
+          seenSouth = false;
+          isInside = !isInside;
+        }
+        if (isInside) {
+          tile.pipe = "I";
+          count++;
+        } else {
+          tile.pipe = "O";
+        }
+      }
+
+      // console.log("tile", tile);
+    });
+  });
+  return count;
 };
 
 const readMaze = () => {
@@ -211,20 +294,28 @@ const readMaze = () => {
 
   let dir = findConnectedDirection(start!, map);
   // console.log("start dir", dir);
-  start!.dir = dir
+  start!.dir = dir;
 
   console.log("start", start);
 
-  let steps = walkMaze(start!, map)
+  let steps = walkMaze(start!, map);
 
-  console.log('steps', steps)
-  console.log('furtherest point', steps/2)
+  console.log("steps", steps);
+  console.log("furtherest point", steps / 2);
 
-  // let final = map.map(r => {
-  //   return r.map(c => c.isPath ? '*' : '.')
-  // })
+  let enclosed = findEnclosedGround(map);
+  console.log("Enclosed Ground Count:", enclosed);
 
-  // console.log('final', final)
+  let final = map.map((r) => {
+    return r.map((c) => c.mark).join("");
+  });
+
+  let drawnMap = map.map((r) => {
+    return r.map((c) => c.pipe).join("");
+  });
+
+  console.log("drawnMap", drawnMap);
+  console.log("final", final);
 };
 
 readMaze();
