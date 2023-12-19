@@ -24,23 +24,21 @@ const checkVerticalReflectionIndex = (pattern: string[], index: number) => {
   // console.log("index", index);
 
   let isReflection = true;
-  for (let row = 0; row < pattern.length && isReflection; row++) {
-    let currentRow = pattern[row];
-    let rowLength = currentRow.length;
-    for (
-      let i = index, j = index + (index - i) + 1;
-      i >= 0 && j < rowLength && isReflection;
-      i--, j++
-    ) {
-      // console.log('i, j', i, j)
-      // console.log('currentRow[i]', currentRow[i])
-      // console.log('currentRow[j]', currentRow[j])
-      if (currentRow[i] !== currentRow[j]) {
-        isReflection = false;
-      }
+  let rowLength = pattern[0].length
+  for (
+    let i = index, j = index + (index - i) + 1;
+    i >= 0 && j < rowLength && isReflection;
+    i--, j++
+  ) {
+    let iColumn = pattern.reduce((s, r) => s + r[i], '')
+    let jColumn = pattern.reduce((s, r) => s + r[j], '')
+    // console.log('i, j', i, j)
+    // console.log('iColumn', iColumn)
+    // console.log('jColumn', jColumn)
+    if (iColumn !== jColumn) {
+      isReflection = false;
     }
   }
-  // console.log("potential i", index, isReflection ? index : -1);
   return isReflection ? index : -1;
 };
 
@@ -53,7 +51,7 @@ const findVerticalReflectionIndex = (pattern: string[]) => {
       potentials.push(i);
     }
   }
-  // console.log("potential cols", potentials);
+  console.log("potential cols", potentials);
 
   let vIndex = -1;
 
@@ -77,20 +75,15 @@ const findVerticalReflectionCount = (patterns: string[][]) => {
 const checkHorizontalReflectionIndex = (pattern: string[], index: number) => {
   // console.log('pattern.length', pattern.length)
   let isReflection = true;
-  for (let col = 0; col < pattern[index].length && isReflection; col++) {
     for (
       let i = index, j = index + (index - i) + 1;
       i >= 0 && j < pattern.length && isReflection;
       i--, j++
     ) {
-      // console.log('i, j, col', i, j, col)
-      // console.log('pattern[i][col]', pattern[i][col])
-      // console.log('pattern[j][col]', pattern[j][col])
-      if (pattern[i][col] !== pattern[j][col]) {
+      if (pattern[i] !== pattern[j]) {
         isReflection = false;
       }
     }
-  }
 
   return isReflection ? index : -1;
 }
@@ -102,7 +95,7 @@ const findHorizontalReflectionIndex = (pattern: string[]) => {
       potentials.push(r)
     }
   }
-  // console.log("potential rows", potentials)
+  console.log("potential rows", potentials)
 
   let hIndex = -1
   potentials.forEach((i) => {
