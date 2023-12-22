@@ -23,8 +23,6 @@ const readSequence = () => {
     console.log('input', input);
     let sequence = parseLine(input[0]);
     console.log('sequence', sequence);
-    console.log('H ascii code', 'H'.charCodeAt(0));
-    console.log('formulateValue(H)', formulateValue('HASH'));
     let values = sequence.map(s => formulateValue(s));
     console.log('values', values);
     let sum = values.reduce((a, v) => a + v, 0);
