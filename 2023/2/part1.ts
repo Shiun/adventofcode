@@ -60,7 +60,7 @@ const processGame = (gameId: string | undefined, line: string | undefined) => {
 const inputStringArray = () => {
   const lines = readFileSync('input.txt').toString().split("\n").filter(n => n);
   let idSum = 0
-  lines.forEach((i) => {
+  lines.forEach((i: string) => {
     idSum += processLine(i);
     console.log(`idSum = ${idSum}\n`)
   })

@@ -58,7 +58,7 @@ const generatePart2Result = () => {
 
   let sum = 0;
   lines
-    .filter((n) => n)
+    .filter((n: string) => n)
     .forEach((i: string) => {
       console.log(`String: ${i}`);
       sum += numberString(i);

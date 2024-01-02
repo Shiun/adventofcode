@@ -27,7 +27,7 @@ const inputStringArray = () => {
   let maxGreen = 0;
   let maxBlue = 0;
   let powerSum = 0;
-  lines.forEach((i) => {
+  lines.forEach((i: string) => {
     console.log(`${i}`)
     maxRed = processLine(i, 'red')
     maxGreen = processLine(i, 'green')

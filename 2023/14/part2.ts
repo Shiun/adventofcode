@@ -148,7 +148,7 @@ const readPlatform = () => {
   }
   console.log('splicedSum', splicedSum)
   console.log('splicedSum.length', splicedSum.length)
-  let splicedSumIndex = (1000000000 % lastSumIndex!) % splicedSum.length
+  let splicedSumIndex = (1000000000 - lastSumIndex!) % splicedSum.length
   console.log('Item # to splicedSum: (1000000000 - lastSumIndex!) % splicedSum.length =', splicedSumIndex)
   console.log(`Item #${splicedSumIndex} in splicedSum[splicedSumIndex - 1] = `, splicedSum[splicedSumIndex - 1])
 }

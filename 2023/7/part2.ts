@@ -100,7 +100,7 @@ const handType = (hand: Hand): CardData => {
     if(sortedGroups[0].face === 'J') {
       return { type: "FOUR_OF_KIND", groups, sortedGroups };
     }
-    // CAN'T HAPPEND
+    // CAN'T HAPPEN
     // if (numJokers === 2) {
     //   return { type: "FIVE_OF_KIND", groups, sortedGroups };
     // }

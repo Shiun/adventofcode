@@ -1,4 +1,3 @@
-import { match } from "assert";
 import { inputLinesArray } from "../utils/utils";
 
 const readInput = () => {
