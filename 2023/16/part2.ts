@@ -21,15 +21,13 @@ const parseTiles = (lines: string[]) => {
   let tiles: Tile[][] = [];
   let t: Tile[] = [];
   lines.forEach((l, y) => {
-    t = l
-      .split("")
-      .map((i, x) => ({
-        type: i as TileType,
-        beamCount: 0,
-        x,
-        y,
-        seen: new Set(),
-      }));
+    t = l.split("").map((i, x) => ({
+      type: i as TileType,
+      beamCount: 0,
+      x,
+      y,
+      seen: new Set(),
+    }));
     tiles.push(t);
   });
   return tiles;
@@ -38,7 +36,6 @@ const parseTiles = (lines: string[]) => {
 const withinLayout = (x: number, y: number, width: number, height: number) => {
   return x >= 0 && x < width && y >= 0 && y < height;
 };
-
 const processTile = (fromDir: Dir, tile: Tile, tiles: Tile[][]) => {
   if (tile.seen.has(fromDir)) {
     return;
@@ -189,21 +186,80 @@ const processTile = (fromDir: Dir, tile: Tile, tiles: Tile[][]) => {
       break;
   }
 };
-
 const readLayout = () => {
   const input = readInput();
   let tiles = parseTiles(input);
   // console.log("tiles", tiles);
-  processTile("W", tiles[0][0], tiles);
-  // console.log("Tiles", tiles)
-  let count = 0;
-  tiles.forEach((l) => {
-    l.forEach((t) => {
-      t.beamCount > 0 ? count++ : undefined;
-    });
-  });
 
-  console.log("count", count);
+  let maxEnergized = 0;
+  let width = tiles[0].length - 1;
+  let height = tiles.length - 1;
+
+  console.log("from W");
+  for (let y = 0; y < tiles.length; y++) {
+    processTile("W", tiles[y][0], tiles);
+    // console.log("Tiles", tiles)
+    let count = 0;
+    tiles.forEach((l) => {
+      l.forEach((t) => {
+        t.beamCount > 0 ? count++ : undefined;
+        t.beamCount = 0;
+        t.seen = new Set();
+      });
+    });
+    // console.log("count", count);
+    maxEnergized < count ? (maxEnergized = count) : undefined;
+  }
+
+  console.log("from E");
+  for (let y = 0; y < tiles.length; y++) {
+    processTile("E", tiles[y][width], tiles);
+    // console.log("Tiles", tiles)
+    let count = 0;
+    tiles.forEach((l) => {
+      l.forEach((t) => {
+        t.beamCount > 0 ? count++ : undefined;
+        t.beamCount = 0;
+        t.seen = new Set();
+      });
+    });
+    // console.log("count", count);
+    maxEnergized < count ? (maxEnergized = count) : undefined;
+  }
+
+  console.log("from N");
+  for (let x = 0; x < tiles.length; x++) {
+    processTile("N", tiles[0][x], tiles);
+    // console.log("Tiles", tiles)
+    let count = 0;
+    tiles.forEach((l) => {
+      l.forEach((t) => {
+        t.beamCount > 0 ? count++ : undefined;
+        t.beamCount = 0;
+        t.seen = new Set();
+      });
+    });
+    // console.log("count", count);
+    maxEnergized < count ? (maxEnergized = count) : undefined;
+  }
+
+  console.log("from S");
+  for (let x = 0; x < tiles.length; x++) {
+    processTile("S", tiles[height][x], tiles);
+    // console.log("Tiles", tiles)
+    let count = 0;
+    tiles.forEach((l) => {
+      l.forEach((t) => {
+        t.beamCount > 0 ? count++ : undefined;
+        t.beamCount = 0;
+        t.seen = new Set();
+      });
+    });
+    // console.log("count", count);
+    maxEnergized < count ? (maxEnergized = count) : undefined;
+  }
+
+  console.log("maxEnergized", maxEnergized);
 };
 
 readLayout();
