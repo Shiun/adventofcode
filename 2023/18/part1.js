@@ -109,6 +109,8 @@ const getNeighborDirections = (map, x, y) => {
 const countDigArea = (map) => {
     let width = map[0].length;
     let height = map.length;
+    console.log('width', width);
+    console.log('height', height);
     let newMap = [];
     for (let y = 0; y < height; y++) {
         newMap[y] = [];
