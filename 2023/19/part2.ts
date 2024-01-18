@@ -184,7 +184,7 @@ const findNextStateAndRanges = (range: PartsRange, stateRules: StateRules) => {
     }
   }
 
-  // final ranges goes to leftover range.
+  // final state goes to leftover range.
   range.state = finalState
   result.push(range)
 
@@ -195,9 +195,6 @@ const workFlowSum = (
   partsRange: PartsRange,
   workflows: Map<string, StateRules>
 ): PartsRange[] => {
-
-
-
   let ranges = [partsRange]
 
   let endRanges: PartsRange[] = []
@@ -211,7 +208,6 @@ const workFlowSum = (
     }
 
     let stateRules = workflows.get(range!.state)!
-
     const newRanges = findNextStateAndRanges(range, stateRules)
     ranges.push(...newRanges)
   }
