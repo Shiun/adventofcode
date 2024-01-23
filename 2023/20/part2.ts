@@ -69,25 +69,6 @@ const connectModules = (modulesMap: Map<string, Module>) => {
   });
 };
 
-const resetConjunctionModules = (modulesMap: Map<string, Module>) => {
-  modulesMap.forEach((v, k, map) => {
-    if (v.type === "C") {
-      v.dests.forEach((d) => {
-        let destModule = map.get(d)!;
-        destModule?.ins.set(k, { from: k, to: d, signal: "low" });
-      });
-    }
-  });
-};
-
-const moduleState = (modulesMap: Map<string, Module>) => {
-  let state: { [k: string]: object } = {};
-  modulesMap.forEach((v, k, map) => {
-    state[k] = { on: v.on, ins: v.ins };
-  });
-  return state;
-};
-
 const processFlipFlopModule = (module: Module, signalInput: SignalInput) => {
   if (signalInput.signal === "high") {
     return [];
@@ -129,28 +110,51 @@ const processSignal = (module: Module, signalInput: SignalInput) => {
   return [];
 };
 
-const processPulses = (modulesMap: Map<string, Module>) => {
+const processPulses = (
+  modulesMap: Map<string, Module>,
+  conjunction: string
+): number => {
   let broadcast = modulesMap.get("broadcaster");
-  let signals: SignalInput[] = [];
+  let c = conjunction;
+  let done = false;
+  let counter = 0;
+  while (!done) {
+    counter++;
+    // resetConjunctionModules(modulesMap);
+    broadcast?.dests.forEach((dest) => {
+      let signals: SignalInput[] = [];
+      signals.push({ from: "broadcaster", to: dest, signal: "low" });
 
-  let low = 1; //Initial low to broadcaster
-  let high = 0;
-  // console.log(`button -> low -> broadcaster`);
-  broadcast?.dests.forEach((dest) => {
-    signals.push({ from: "broadcaster", to: dest, signal: "low" });
-  });
+      while (signals.length !== 0 && !done) {
+        let s = signals.shift()!;
+        let m = modulesMap.get(s.to)!;
 
-  while (signals.length !== 0) {
-    let s = signals.shift()!;
-    let m = modulesMap.get(s.to)!;
-
-    s.signal === "high" ? high++ : low++;
-    // console.log(`${s.from} -> ${s.signal} -> ${s.to}`);
-    let newSignals = processSignal(m, s);
-    signals.push(...newSignals);
+        if (s.from === c && s.signal === "high") {
+          done = true;
+          continue;
+        }
+        let newSignals = processSignal(m, s);
+        signals.push(...newSignals);
+      }
+    });
   }
 
-  return { high, low };
+  return counter;
+};
+
+// Least common multiplier (lcm)
+// Greatest common denominator (gcd)
+// lcm(a, b) = a * b / gcd(a, b)
+
+const gcd = (a: number, b: number): number => {
+  if (b === 0) {
+    return a;
+  }
+  return gcd(b, a % b);
+};
+
+const lcm = (a: number, b: number): number => {
+  return (a * b) / gcd(a, b);
 };
 
 const readConfiguration = () => {
@@ -158,46 +162,26 @@ const readConfiguration = () => {
   // console.log("input", input);
 
   const modulesMap = new Map<string, Module>();
+  let result: number[] = [];
 
-  // Parse modules
-  input.forEach((l: string) => {
-    let { name, module } = parseModule(l);
-    modulesMap.set(name, module);
+  // These are the conjunctions that we need to process
+  // looking for high signals from these that then is sent to 
+  // conjunction module 'ns', resulting in a low signal to 'rx'
+  ["dc", "rv", "vp", "cq"].forEach((c) => {
+    const modulesMap = new Map<string, Module>();
+    // Parse modules
+    input.forEach((l: string) => {
+      let { name, module } = parseModule(l);
+      modulesMap.set(name, module);
+    });
+    // Initialize connections between modules
+    connectModules(modulesMap);
+
+    result.push(processPulses(modulesMap, c));
   });
-  // Initialize connections between modules
-  connectModules(modulesMap);
 
-  console.log("BEFORE modulesMap", inspect(modulesMap, false, null, true));
-  // Get Initial State
-  let initState = moduleState(modulesMap);
-
-  let result;
-  let postProcessedState = {};
-  let cycleCount = 0;
-  let lowCount = 0
-  let highCount = 0
-  while (JSON.stringify(initState) !== JSON.stringify(postProcessedState) && cycleCount < 1000) {
-    resetConjunctionModules(modulesMap);
-    result = processPulses(modulesMap);
-    cycleCount++;
-    // console.log(`Cycle (${cycleCount}) low, high: `, result.low, result.high);
-    lowCount += result.low
-    highCount += result.high
-    postProcessedState = moduleState(modulesMap);
-  }
-
-
-  let multiplier = 1000 / cycleCount
-  let remainder = 1000 % cycleCount
-
-  console.log('cycleCount', cycleCount)
-  console.log('multiplier', multiplier)
-  console.log('remainder', remainder)
-
-  let totalLow = lowCount * multiplier
-  let totalHigh = highCount * multiplier
-
-  console.log(`Total: (totalLow * totalHigh) = (${totalLow} * ${totalHigh}) = ${totalLow * totalHigh})`)
+  let multiplier = result.reduce((sum, c) => lcm(sum, c), 1);
+  console.log("common multiplier", multiplier);
 };
 
 readConfiguration();
