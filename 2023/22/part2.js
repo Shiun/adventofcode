@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const utils_2 = require("../utils/utils");
+const utils_1 = require("../utils/utils");
 const readInput = () => {
-    const lines = (0, utils_2.inputLinesArray)("input.txt");
+    const lines = (0, utils_1.inputLinesArray)("input.txt");
     return lines;
 };
 const parseBricks = (line, row) => {
@@ -11,12 +11,15 @@ const parseBricks = (line, row) => {
     let startMatch = ends[0].match(regEx);
     let endMatch = ends[1].match(regEx);
     return {
+        id: `id: ${row}`,
         startX: parseInt(startMatch.groups.x),
         startY: parseInt(startMatch.groups.y),
         startZ: parseInt(startMatch.groups.z),
         endX: parseInt(endMatch.groups.x),
         endY: parseInt(endMatch.groups.y),
         endZ: parseInt(endMatch.groups.z),
+        dropIDs: [],
+        topBricks: [],
     };
 };
 const sortBricks = (bricks) => {
@@ -77,14 +80,15 @@ const restState = (bricks, v) => {
         // Update state with final brick position
         setOccupiedState(b, state);
     });
+    setTopBricks(bricks);
     return state;
 };
-const willDrop = (bricks, state) => {
-    let willDrop = false;
-    for (let i = 0; i < bricks.length && !willDrop; i++) {
+const dropIDs = (bricks, state) => {
+    let dropIDs = [];
+    for (let i = 0; i < bricks.length; i++) {
         let b = bricks[i];
         let drops = true;
-        for (let x = b.startX; x <= b.endX && drops && !willDrop; x++) {
+        for (let x = b.startX; x <= b.endX; x++) {
             for (let y = b.startY; y <= b.endY && drops; y++) {
                 // Check if space below brick is occupied
                 if (state[x][y][b.startZ - 1] === true) {
@@ -92,10 +96,9 @@ const willDrop = (bricks, state) => {
                 }
             }
         }
-        drops ? (willDrop = true) : undefined;
+        drops ? dropIDs.push(b.id) : undefined;
     }
-    // console.log('willDrop', willDrop)
-    return willDrop;
+    return dropIDs;
 };
 const findTopBricks = (b, bricks) => {
     let candidates = bricks.filter((c) => c.startZ === b.startZ + 1 || c.startZ === b.endZ + 1);
@@ -123,19 +126,54 @@ const displaySlice = (b, state) => {
         console.log("\n");
     });
 };
-const countRemovableBricks = (bricks, state) => {
+const countBricksWithFallingNeighbors = (bricks, state) => {
     let count = 0;
     bricks.forEach((b, index) => {
         let stateCopy = JSON.parse(JSON.stringify(state));
-        let topBricks = index < bricks.length - 1 ? bricks.slice(index + 1) : [];
-        let directTopNeighbors = findTopBricks(b, topBricks);
         // displaySlice(b, state);
         // remove b and see if directTopNeighbors will drop.
         setOccupiedState(b, stateCopy, false);
         // displaySlice(b, stateCopy);
-        willDrop(directTopNeighbors, stateCopy) === true ? undefined : count++;
+        b.dropIDs = dropIDs(b.topBricks, stateCopy);
+        if (b.dropIDs.length !== 0) {
+            count++;
+        }
     });
     return count;
+};
+const setTopBricks = (bricks) => {
+    bricks.forEach((b, index) => {
+        let topBricks = index < bricks.length - 1 ? bricks.slice(index + 1) : [];
+        b.topBricks = findTopBricks(b, topBricks);
+    });
+};
+const countChainReaction = (bricks, bricksMap, state) => {
+    let chainCount = 0;
+    let chainIds = new Map();
+    bricks.forEach((b, index) => {
+        let stateCopy = JSON.parse(JSON.stringify(state));
+        let brickIds = [b.id];
+        while (brickIds.length !== 0) {
+            // remove b and see if directTopNeighbors will drop.
+            let nextIds = [];
+            let removedBrick;
+            brickIds.forEach((id) => {
+                removedBrick = bricksMap.get(id);
+                setOccupiedState(removedBrick, stateCopy, false);
+            });
+            brickIds.forEach((id) => {
+                removedBrick = bricksMap.get(id);
+                removedBrick.dropIDs = dropIDs(removedBrick.topBricks, stateCopy);
+                nextIds.push(...removedBrick.dropIDs);
+            });
+            nextIds = nextIds.filter((id, index) => nextIds.indexOf(id) === index);
+            nextIds.forEach(i => chainIds.set(i, i));
+            brickIds = nextIds;
+        }
+        chainCount += chainIds.size;
+        chainIds = new Map();
+    });
+    return chainCount;
 };
 const readMap = () => {
     let lines = readInput();
@@ -147,9 +185,18 @@ const readMap = () => {
     console.log("volume", v);
     let state = restState(bricks, v);
     // console.log("state", state);
+    // console.log("final brick state", bricks);
+    let count = countBricksWithFallingNeighbors(bricks, state);
+    // Map for easier reference to bricks
+    let bricksMap = new Map();
+    bricks.forEach((b) => {
+        bricksMap.set(b.id, b);
+    });
+    let chainCount = countChainReaction(bricks, bricksMap, state);
     console.log("final brick state", bricks);
-    let count = countRemovableBricks(bricks, state);
-    console.log("removable block count:", count);
+    console.log("bricksMap", bricksMap);
+    console.log("bricks with falling neighbors:", count);
+    console.log("chain reaction count:", chainCount);
 };
 readMap();
-//# sourceMappingURL=part1.js.map
+//# sourceMappingURL=part2.js.map
